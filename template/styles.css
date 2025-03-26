@@ -1,0 +1,104 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+nav {
+    background-color: blue;
+    height: 50px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    font-size: 16px;
+}
+
+nav a:hover {
+    background-color: darkblue;
+}
+
+@media (max-width: 600px) {
+    nav {
+        flex-direction: column;
+        height: auto;
+    }
+
+    nav a {
+        padding: 15px;
+        text-align: center;
+        width: 100%;
+    }
+}
+
+.Div1, .Div2 {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 30px;
+    padding: 30px 50px 10px;
+    background-color: gray;
+    border-radius: 20px;
+}
+
+.Div2 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.select1 {
+    width: 400px;
+    height: 30px;
+    border-radius: 10px;
+    margin-right: 20px;
+}
+
+.select2 {
+    width: 200px;
+    height: 30px;
+    border-radius: 10px;
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    font-size: 12px;
+    background-color: blue;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #e0e0e0;
+}

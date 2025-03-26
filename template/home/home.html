@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ขายอวัยวะ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+ 
+</head>
+<body>
+    <form action="/home" method="post">
+        {% include 'home/navbar.html' %}
+
+    
+    <div class="container mt-4">
+        <div class="card p-2 mb-1">
+            <h2>
+                ร้าน คงเดชอวียวะ : {{conn_text}}
+            </h2>
+        </div>
+        <div class="card p-4 mb-4">
+            <h2>ข้อมูลลูกค้า</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <select name="customer" class="form-select">
+                        <option value="">-ชื่อลูกค้า-</option>
+                        {% if customer_text is not none %}
+                            {% for row in customer_text %}
+                                {% if row[0] == select_value %}
+                                    <option value="{{ row[0] }}" selected>{{ row[2] }} {{ row[3] }}</option>
+                                {% else %}
+                                    <option value="{{ row[0] }}" >{{ row[2] }} {{ row[3] }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                    
+                </div>
+                <div class="col-md-4">
+                        <select class="form-select">
+                            <option value="">-เบอร์ลูกค้า-</option>
+                            {%if customer_text is not none%}
+                            {% for row in customer_text %}
+                                {% if row[0] == select_value %}
+                                    <option value="{{ row[5] }}" selected>{{ row[5] }}</option>
+                                {% endif %}
+                            {% endfor %}
+                            {%endif%}
+                     </select>
+
+                </div>
+                <div class="col-md-4">
+                        <select class="form-select">
+                            <option value="">-ประเภทลูกค้า-</option>
+                                {% if select_value is not none %}
+                                    {%if customergrp_text is not none or customergrp_text == "" %}
+                                        <option value="" selected>{{customergrp_text}}</option>
+                                    {%endif%}
+                                {% endif %}
+                        </select>
+                </div>
+                <div class="p-3 w-300">
+                       <button class="btn btn-primary me-2" name="button_serch" value="search">ค้นหา</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4 mb-4">
+            <h2>ข้อมูลสินค้า</h2>
+            <div class="mb-3">
+                <select name="stock" class="form-select">
+                    <option value="">-รายการสินค้า-</option>
+                            {%for row in stock_text %}
+                                {%if select_stock == row[0]%}
+                                    <option value="{{row[0]}}" selected>{{row[4]}}</option>
+                                {%else%}
+                                    <option value="{{row[0]}}">{{row[4]}}</option>
+                                {%endif%}
+                            {%endfor%}
+                    </select>
+            </div>
+            <div class="mb-3">
+            </div>
+            <div>
+                    {%if button_select_edit is none%}                
+                        <button class="btn btn-primary me-2" name="button_add" type="submit" onclick="location.href">เพิ่มข้อมูล</button>
+                    {%endif%}
+
+                    {%if button_select_edit is not none%}
+                    <button class="btn btn-warning me-2" name="button_edit" type="submit" value="{{button_select_edit}}">แก้ไขข้อมูล</button>
+                    <button class="btn btn-danger" name="button_cancle" type="submit" value="{{button_select_edit}}">ลบข้อมูล</button>
+                    {%endif%}
+            </div>
+        </div>
+
+        <div class="card p-4">
+            <div class="col-md-4">
+                <h2>ข้อมูลการสั่งซื้อสินค้า</h2>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group mb-3">
+                    <input type="text" name="search_tb_text" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                    <button name="search_tb_button" class="btn btn-outline-secondary" type="submit">Search</button>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-sm">
+                <thead class="table-bordered">
+                    <tr>
+                        <th>รหัสสั่งซื้อ</th>
+                        <th>ชื่อลูกค้า</th>
+                        <th>สินค้า</th>
+                        <th>ประเภทสินค้า</th>
+                        <th>เบอร์โทรศัพท์</th>
+                    </tr>
+                    <tbody>
+                        {%for row in order_text%}
+                            <tr>
+                                <td>{{row[0]}}</td>
+                                {% for name in customer_text%}
+                                    {%if name[0] == row[1]%}
+                                        <td>{{name[2]}} {{name[3]}}</td>
+                                    {%endif%}
+                                {%endfor%}
+
+                                {% for stock in stock_text%}
+                                    {%if stock[0] == row[2]%}
+                                        <td>{{stock[4]}}</td>
+                                    {%endif%}
+                                {%endfor%}
+
+                                {% for grpname in stock_textgrp%}
+                                    {%if row[3] == grpname[0]%}
+                                        <td>{{grpname[1]}}</td>
+                                    {%endif%}
+                                {%endfor%}
+
+                                {% for num in customer_text%}
+                                    {%if num[0] == row[1]%}
+                                        <td>{{num[5]}}</td>
+                                    {%endif%}
+                                {%endfor%}
+                                
+                                {% if row[4] == '1' %}
+                                    <td>
+                                        <button name="button_select_edit" value="{{row[0]}}" class="btn btn-warning" type="submit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                    </td>
+                                {%else%}
+                                    <td>การสั่งซื้อ</td>
+                                {%endif%}
+                            </tr>
+                        {%endfor%}
+                    </tbody>
+                </thead>
+            </table>
+        </div>
+    </div>
+    </form>
+    
+</body>
+
+</html>
