@@ -25,13 +25,13 @@ def home():
     cus_tel_old = []
     pro_name_old = []
 
-    button_serch = request.form.get("button_serch")
-    button_add = request.form.get("button_add")
-    button_edit = request.form.get("button_edit")
-    button_delete = request.form.get("button_delete")
-    button_select_edit = request.form.get("button_select_edit")
-    search_tb_button = request.form.get("search_tb_button")
-    search_tb_text = request.form.get("search_tb_text")
+    button_serch = None
+    button_add = None
+    button_edit = None
+    button_delete = None
+    button_select_edit = None
+    search_tb_button = None
+    search_tb_text = None
     
     result = connection_database()
 
@@ -59,25 +59,25 @@ def home():
 
         if select_value == "":
             select_value = None
+        if request.method == "POST":
+            if 'button_serch' in request.form:
+                print("ค้นหา", select_value)
 
-        if 'button_serch' in request.form:
-            print("ค้นหา", select_value)
+                if select_value is not None:
 
-            if select_value is not None:
+                    for row in customer_text:
+                        if select_value == row[0]:
+                            customergrp_text = row[1]
 
-                for row in customer_text:
-                    if select_value == row[0]:
-                        customergrp_text = row[1]
+                    query = "SELECT CustGrpName FROM tbCustomerGrp where CustGrpCode = '" + customergrp_text + "'"
+                    result_customergrp = execute_data(query)
+                    
+                    for result_text in result_customergrp:
+                        customergrp_text = result_text[0]
+                else:
+                    print("Select value is None")
 
-                query = "SELECT CustGrpName FROM tbCustomerGrp where CustGrpCode = '" + customergrp_text + "'"
-                result_customergrp = execute_data(query)
-                
-                for result_text in result_customergrp:
-                    customergrp_text = result_text[0]
-            else:
-                print("Select value is None")
-
-        elif 'search_tb_button' in request.form:
+        if 'search_tb_button' in request.form:
             search_tb_button = request.form.get("search_tb_text")
             print("Search Text",search_tb_text)
 
@@ -125,181 +125,186 @@ def home():
                         print(f"Error Customer: {e}")
                         order_text = []  
  
-        elif 'button_add' in request.form:
-            
-            select_value = request.form.get('customer')
-            select_stock = request.form.get('stock')
-
-            print("เพิ่ม", select_stock)
-
-            if select_value  is None or select_value == "":
-                print("Select value is None")
-                return redirect(url_for("home"))
-            elif select_stock is None or select_stock == "":
-                print("Select stock is None")
-                return redirect(url_for("home"))
-            elif select_value and select_stock is not None:
-
-                print("Select value:", select_value)
-                print("Select stock:", select_stock)
-
-                for row in stock_text:
-                    if select_stock == row[0]:
-                        stockgrp_code = row[1]
-
-                        query = f"INSERT INTO tbSae (CustCode, StockCode, StockGrpCode,Status) VALUES ('{custcode}', '{select_stock}', '{stockgrp_code}','1')"
-                        print("insert: ",execute_data_insert(query))
-
-
-                customer_result = execute_data(f"SELECT * FROM tbCustomer WHERE Custcode = '{select_value}'")
-                if customer_result:
-                    cus_name = customer_result[0][3]
-                    cus_prefix = customer_result[0][2]
-                    cus_tel = customer_result[0][5]
-
-                stock_result = execute_data(f"SELECT * FROM tbStock WHERE Stockcode = '{select_stock}'")
-                if stock_result:
-                    pro_name = stock_result[0][4]
-
+        if request.method == "POST":
+            if 'button_add' in request.form:
                 
-                message_text = (
-                    f"\nการสั่งซื้อใหม่\nร้าน: คงเดชอวียวะ \nลูกค้า: {cus_prefix} {cus_name} \nเบอร์: {cus_tel} \nสินค้า: {pro_name}"
-                )
-                message = {"message": message_text}
+                select_value = request.form.get('customer')
+                select_stock = request.form.get('stock')
 
-                res = requests.post(url=url, headers=headers, data=message)
+                print("เพิ่ม", select_stock)
 
-                select_value = None
-                select_stock = None
+                if select_value  is None or select_value == "":
+                    print("Select value is None")
+                    return redirect(url_for("home"))
+                elif select_stock is None or select_stock == "":
+                    print("Select stock is None")
+                    return redirect(url_for("home"))
+                elif select_value and select_stock is not None:
 
-                return redirect(url_for("home"))
-            else:
-                print("data to insert is wrong")
-                return redirect(url_for("home"))
-    
-        elif 'button_select_edit' in request.form:
-            button_select_edit = request.form.get("button_select_edit")  # รับค่าจากฟอร์ม
-            print("แก้ไข", button_select_edit)
+                    print("Select value:", select_value)
+                    print("Select stock:", select_stock)
 
-            if order_text:  # เช็คว่ามีข้อมูลใน order_text ไหม
-                for row in order_text:
-                    if str(row[0]) == str(button_select_edit):  # แปลงเป็น string ก่อนเช็ค
-                        print("พบข้อมูลที่ต้องการแก้ไข:", row[0])
+                    for row in stock_text:
+                        if select_stock == row[0]:
+                            stockgrp_code = row[1]
 
-                        select_value = row[1]
-                        select_stock = row[2]
+                            query = f"INSERT INTO tbSae (CustCode, StockCode, StockGrpCode,Status) VALUES ('{custcode}', '{select_stock}', '{stockgrp_code}','1')"
+                            print("insert: ",execute_data_insert(query))
 
-                        for row in customer_text:
-                            if select_value == row[0]:
-                                customergrp_text = row[1]
 
-                        query = "SELECT CustGrpName FROM tbCustomerGrp where CustGrpCode = '" + customergrp_text + "'"
-                        result_customergrp = execute_data(query)
-                        
-                        for result_text in result_customergrp:
-                            customergrp_text = result_text[0]
+                    customer_result = execute_data(f"SELECT * FROM tbCustomer WHERE Custcode = '{select_value}'")
+                    if customer_result:
+                        cus_name = customer_result[0][3]
+                        cus_prefix = customer_result[0][2]
+                        cus_tel = customer_result[0][5]
 
-                        print("Select stock:", select_stock)
-                        print("Select value:", select_value)
+                    stock_result = execute_data(f"SELECT * FROM tbStock WHERE Stockcode = '{select_stock}'")
+                    if stock_result:
+                        pro_name = stock_result[0][4]
 
-                        customer_result = execute_data(f"SELECT * FROM tbCustomer WHERE Custcode = '{select_value}'")
-                        if customer_result:
-                            cus_name_old = customer_result[0][3]
-                            cus_prefix_old = customer_result[0][2]
-                            cus_tel_old = customer_result[0][5]
-
-                        stock_result = execute_data(f"SELECT * FROM tbStock WHERE Stockcode = '{select_stock}'")
-                        if stock_result:
-                            pro_name_old = stock_result[0][4]
-
-                        select = button_select_edit
-                        
-                        print("Select", select)
-            else:
-                print("ไม่มีข้อมูลให้แก้ไข")
-
-        
-        elif 'button_edit' in request.form:
-            button_edit = request.form.get("button_edit")
-            print("แก้ไข", button_edit)
-
-            select_value = request.form.get('customer')
-            select_stock = request.form.get('stock')
-
-            print("Select value Edit:", custcode)
-            print("Select stock: Edit", select_stock)
-
-            custcode = select_value
-
-            if select_value and select_stock is not None:
-                for row in stock_text:
                     
-                    if select_stock == row[0]:
-                        result = row[1]
-                        stockgrp_code = result
-                        if custcode  is None:
-                            print("Select value is None")
-                            return redirect(url_for("home"))
-                        elif select_stock is None:
-                            print("Select stock is None")
-                            return redirect(url_for("home"))
-                        elif stockgrp_code is None:
-                            print("StockGrp is none")
-                            return redirect(url_for("home"))
-                        elif button_edit is None:
-                            print("NO point to update")
-                            return redirect(url_for("home"))
-                        else:
-                            print("Update: ", button_edit)
-                            query = f"UPDATE tbSae SET CustCode = '{custcode}', StockCode = '{select_stock}', StockGrpCode = '{stockgrp_code}' WHERE SOCode = '{button_edit}'"
-                            print("update: ",execute_data_insert(query))
+                    message_text = (
+                        f"\nการสั่งซื้อใหม่\nร้าน: คงเดชอวียวะ \nลูกค้า: {cus_prefix} {cus_name} \nเบอร์: {cus_tel} \nสินค้า: {pro_name}"
+                    )
+                    message = {"message": message_text}
 
-                            customer_result = execute_data(f"SELECT * FROM tbCustomer WHERE Custcode = '{select_value}'")
-                            if customer_result:
-                                cus_name = customer_result[0][3]
-                                cus_prefix = customer_result[0][2]
-                                cus_tel = customer_result[0][5]
+                    res = requests.post(url=url, headers=headers, data=message)
 
-                            stock_result = execute_data(f"SELECT * FROM tbStock WHERE Stockcode = '{select_stock}'")
-                            if stock_result:
-                                pro_name = stock_result[0][4]
+                    select_value = None
+                    select_stock = None
+
+                    return redirect(url_for("home"))
+                else:
+                    print("data to insert is wrong")
+                    return redirect(url_for("home"))
+        if request.method == "POST":
+            if 'button_select_edit' in request.form:
+                button_select_edit = request.form.get("button_select_edit")  # รับค่าจากฟอร์ม
+                print("แก้ไข", button_select_edit)
+
+                if order_text:  # เช็คว่ามีข้อมูลใน order_text ไหม
+                    for row in order_text:
+                        if str(row[0]) == str(button_select_edit):  # แปลงเป็น string ก่อนเช็ค
+                            print("พบข้อมูลที่ต้องการแก้ไข:", row[0])
+
+                            select_value = row[1]
+                            select_stock = row[2]
+
+                            for row in customer_text:
+                                if select_value == row[0]:
+                                    customergrp_text = row[1]
+
+                            query = "SELECT CustGrpName FROM tbCustomerGrp where CustGrpCode = '" + customergrp_text + "'"
+                            result_customergrp = execute_data(query)
+                            
+                            for result_text in result_customergrp:
+                                customergrp_text = result_text[0]
+
+                            print("Select stock:", select_stock)
+                            print("Select value:", select_value)
 
                             
-                            message_text = (
-                                f"\nมีการแก้ไข\nร้าน: คงเดชอวียวะ\n------ ------ \nลูกค้า: {cus_prefix_old} {cus_name_old} \nเบอร์: {cus_tel_old} \nสินค้า: {pro_name_old}"
-                                f"\n------ ------ \nลูกค้า: {cus_prefix} {cus_name} \nเบอร์: {cus_tel} \nสินค้า: {pro_name}"
-                            )
-                            message = {"message": message_text}
 
-                            res = requests.post(url=url, headers=headers, data=message)
+                            select = button_select_edit
+                            
+                            print("Select", select)
+                else:
+                    print("ไม่มีข้อมูลให้แก้ไข")
 
-                            select_value = None
-                            select_stock = None
-                            custcode = None
-                            button_select_edit = None
+        if request.method == "POST":
+            if 'button_edit' in request.form:
+                customer_result = execute_data(f"SELECT * FROM tbCustomer WHERE Custcode = '{select_value}'")
+                if customer_result:
+                    cus_name_old = customer_result[0][3]
+                    cus_prefix_old = customer_result[0][2]
+                    cus_tel_old = customer_result[0][5]
 
+                print("old syock", select_stock)
+                stock_result = execute_data(f"SELECT * FROM tbStock WHERE Stockcode = '{select_stock}'")
+                if stock_result:
+                    pro_name_old = stock_result[0][4]
+
+                button_edit = request.form.get("button_edit")
+                print("แก้ไข", button_edit)
+
+                select_value = request.form.get('customer')
+                select_stock = request.form.get('stock')
+
+                print("Select value Edit:", custcode)
+                print("Select stock: Edit", select_stock)
+
+                custcode = select_value
+
+                if select_value and select_stock is not None:
+                    for row in stock_text:
+                        
+                        if select_stock == row[0]:
+                            result = row[1]
+                            stockgrp_code = result
+                            if custcode  is None:
+                                print("Select value is None")
+                                return redirect(url_for("home"))
+                            elif select_stock is None:
+                                print("Select stock is None")
+                                return redirect(url_for("home"))
+                            elif stockgrp_code is None:
+                                print("StockGrp is none")
+                                return redirect(url_for("home"))
+                            elif button_edit is None:
+                                print("NO point to update")
+                                return redirect(url_for("home"))
+                            else:
+                                print("Update: ", button_edit)
+                                query = f"UPDATE tbSae SET CustCode = '{custcode}', StockCode = '{select_stock}', StockGrpCode = '{stockgrp_code}' WHERE SOCode = '{button_edit}'"
+                                print("update: ",execute_data_insert(query))
+
+                                customer_result = execute_data(f"SELECT * FROM tbCustomer WHERE Custcode = '{select_value}'")
+                                if customer_result:
+                                    cus_name = customer_result[0][3]
+                                    cus_prefix = customer_result[0][2]
+                                    cus_tel = customer_result[0][5]
+
+                                stock_result = execute_data(f"SELECT * FROM tbStock WHERE Stockcode = '{select_stock}'")
+                                if stock_result:
+                                    pro_name = stock_result[0][4]
+
+                                
+                                message_text = (
+                                    f"\nร้าน: คงเดชอวียวะ \nมีการแก้ไขการสั่งซื้อ \n------ข้อมูลเดิม------ \nลูกค้า: {cus_prefix_old} {cus_name_old} \nเบอร์: {cus_tel_old} \nสินค้า: {pro_name_old}"
+                                    f"\n------ข้อมูลใหม่------ \nลูกค้า: {cus_prefix} {cus_name} \nเบอร์: {cus_tel} \nสินค้า: {pro_name}"
+                                )
+                                message = {"message": message_text}
+
+                                res = requests.post(url=url, headers=headers, data=message)
+
+                                select_value = None
+                                select_stock = None
+                                custcode = None
+                                button_select_edit = None
+
+                                return redirect(url_for("home"))
+                else:
+                            print("data to update is wrong")
                             return redirect(url_for("home"))
-            else:
-                        print("data to update is wrong")
-                        return redirect(url_for("home"))
         
-        elif 'button_cancle' in request.form:
-            button_cancle = request.form.get("button_cancle")
-            print("ยกเลิก", button_cancle)
+        if request.method == "POST":
+            if 'button_cancle' in request.form:
+                button_cancle = request.form.get("button_cancle")
+                print("ยกเลิก", button_cancle)
 
-            try:
-                print("Delete:", button_cancle)
-                query = f"UPDATE tbSae SET Status='0' WHERE SOCode=" + button_cancle
-                print("Delete Suc", execute_data_insert(query))
+                try:
+                    print("Delete:", button_cancle)
+                    query = f"UPDATE tbSae SET Status='0' WHERE SOCode=" + button_cancle
+                    print("Delete Suc", execute_data_insert(query))
 
-                return redirect(url_for("home"))
-            except Exception as e:
-                print(e)
-                return redirect(url_for("home"))
-            
-    else:
-        print("Connect database failed")
-        return redirect(url_for("home"))
+                    return redirect(url_for("home"))
+                except Exception as e:
+                    print(e)
+                    return redirect(url_for("home"))
+                
+        else:
+            print("Connect database failed")
+            return redirect(url_for("home"))
 
     return render_template("home/home.html",
                             search_tb_text=search_tb_text,
