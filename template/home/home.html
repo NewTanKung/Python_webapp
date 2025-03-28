@@ -89,7 +89,7 @@
 
                     {%if button_select_edit is not none%}
                     <button class="btn btn-warning me-2" name="button_edit" type="submit" value="{{button_select_edit}}">แก้ไขข้อมูล</button>
-                    <button class="btn btn-danger" name="button_cancle" type="submit" value="{{button_select_edit}}">ลบข้อมูล</button>
+                    <button class="btn btn-danger" name="button_cancle" type="submit" value="{{button_select_edit}}">ยกเลิก</button>
                     {%endif%}
             </div>
         </div>
@@ -150,7 +150,7 @@
                                         </button>
                                     </td>
                                 {%else%}
-                                    <td>การสั่งซื้อ</td>
+                                    <td>การสั่งซื้อถูกยกเลิก</td>
                                 {%endif%}
                             </tr>
                         {%endfor%}
