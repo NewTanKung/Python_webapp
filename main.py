@@ -1,16 +1,51 @@
-from flask import Flask , render_template, request,redirect, url_for, flash
+from flask import Flask , render_template, request,redirect, url_for, flash,jsonify
 from connection import connection_database, execute_data, execute_data_insert
+from notify import add_noti
 import requests
 
 app = Flask(__name__, template_folder="template")
 
+
+@app.route("/api", methods=['GET'])
+def cust_api():
+    result = connection_database()
+
+    if result:
+        customer_data = execute_data("SELECT * FROM tbCustomer")
+
+    res_ary_cust = []
+
+    # print("s"customer_data)
+
+    for data in customer_data:
+        print(data)
+        
+        res_cust = {
+            "CustCode": f"{data[0]}",
+            "GrpCode": f"{data[1]}",
+            "prefix": f"{data[2]}",
+            "name": f"{data[3]}",
+            "address": f"{data[4]}",
+            "tell": f"{data[5]}"
+            }
+        res_ary_cust.append(res_cust)
+    
+    print(res_ary_cust)
+
+
+    return jsonify(res_ary_cust)
+
+
+
 @app.route("/home", methods=['GET', 'POST'])
 def home():
 
-    url = "https://notify-api.line.me/api/notify"
+    TO_Group = "C82b2164226b621af3507a76b9faedd7d"
+    token = "B+XvTopRqZQzQ1nCxS6VDX93+ceQiEh9ZBpUF+VhImQ9Va+uTAJ6I2NdLsF4bOpOtI9UbPzcfiaBPkwk/IlCZQluVfRvGj3HfCYezWq7L5YbAnsIpldyxUAnHE2HRwgk+/Tz395nnvFvppVVlcy+JAdB04t89/1O/w1cDnyilFU="
+    url = "https://api.line.me/v2/bot/message/push"
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
-        "Authorization": "Bearer 7lVpHVzPrquKZ3M4aucCt7SBuXj5tMfw8oWuQSqQTWx"
+        "Authorization": f"Bearer {token}"
     }
 
     order_text = ""
@@ -92,14 +127,15 @@ def home():
             except Exception as e:
                 print(f"Error SOCode: {e}")
                 
-                try:
+                try: #Find Stock Code
                     query = f"SELECT StockCode FROM tbStock WHERE StockName LIKE '%{search_tb_button}%'"
                     text = execute_data(query)
-                    print(text)
+                    product_codes = ", ".join(f"'{code[0]}'" for code in text)
+                    print("Find Stock code:",product_codes)
                     
                     if text:
                         result = text[0][0]
-                        query = f"SELECT * FROM tbSae WHERE StockCode = '{result}'"
+                        query = f"SELECT * FROM tbSae WHERE StockCode IN ({product_codes})"
                         order_text = execute_data(query)
 
                     if not order_text:
@@ -108,22 +144,23 @@ def home():
                 except Exception as e:
                     print(f"Error Stock: {e}")
 
-                    try:
-                        query = f"SELECT CustCode FROM tbCustomer WHERE CustName LIKE '%{search_tb_button}%'"
-                        text = execute_data(query)
-                        print(text)
+                try: #Find Cust Code
+                    query = f"SELECT CustCode FROM tbCustomer WHERE CustName LIKE '%{search_tb_button}%'"
+                    text = execute_data(query)
+                    cust_codes = ", ".join(f"'{code[0]}'" for code in text)
+                    print("Find Cust code:",cust_codes)
 
-                        if text:
-                            result = text[0][0]
-                            query = f"SELECT * FROM tbSae WHERE CustCode = '{result}'"
-                            order_text = execute_data(query)
+                    if text:
+                        result = text[0][0]
+                        query = f"SELECT * FROM tbSae WHERE CustCode IN ({cust_codes})"
+                        order_text = execute_data(query)
 
-                        if not order_text:
-                            raise ValueError("No data found in Customer")
+                    if not order_text:
+                        raise ValueError("No data found in Customer")
 
-                    except Exception as e:
+                except Exception as e:
                         print(f"Error Customer: {e}")
-                        order_text = []  
+                        order_text = []
  
         if 'button_add' in request.form:
             
@@ -161,12 +198,16 @@ def home():
                 if stock_result:
                     pro_name = stock_result[0][4]
 
-                
+                # print("Send_add",add_noti(cus_name,cus_prefix,cus_tel,pro_name))
+
                 message_text = (
                     f"📢ร้านคงเดชอวียวะ"
                     f"\n\n📜การสั่งซื้อใหม่📜\n\n 👦🏻ลูกค้า: {cus_prefix} {cus_name} \n 📞เบอร์: {cus_tel} \n 📦nสินค้า: {pro_name}"
                 )
-                message = {"message": message_text}
+                message = {
+                    "to" : TO_Group,
+                    "message": message_text
+                    }
 
                 res = requests.post(url=url, headers=headers, data=message)
 
@@ -438,10 +479,6 @@ def location():
     else:
         conn_text = "ไม่สำเร็จ"
     return render_template("location/location.html",location_text=location_text)
-
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
